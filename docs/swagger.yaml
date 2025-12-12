@@ -1,0 +1,146 @@
+basePath: /v1/
+definitions:
+  model.Response:
+    properties:
+      data: {}
+      error:
+        example: Error message
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  model.UpdateBalance:
+    properties:
+      amount:
+        example: 1000
+        type: integer
+      operationType:
+        enum:
+        - DEPOSIT
+        - WITHDRAW
+        example: DEPOSIT
+        type: string
+      valletId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    required:
+    - amount
+    - operationType
+    - valletId
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@walletapi.com
+    name: API Support
+  description: API for managing cryptocurrency wallets with deposit and withdrawal
+    operations
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Wallet API
+  version: "1.0"
+paths:
+  /create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new wallet with zero balance and returns its UUID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wallet created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: Create a new wallet
+      tags:
+      - Wallets
+  /wallet:
+    post:
+      consumes:
+      - application/json
+      description: Deposits or withdraws funds from a wallet
+      parameters:
+      - description: Update balance request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateBalance'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Balance updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/model.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: Update wallet balance
+      tags:
+      - Wallets
+  /wallets/{WALLET_UUID}:
+    get:
+      consumes:
+      - application/json
+      description: Returns the current balance of a wallet by its UUID
+      parameters:
+      - description: Wallet UUID
+        in: path
+        name: WALLET_UUID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Balance retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
+        "400":
+          description: Wallet UUID not provided
+          schema:
+            $ref: '#/definitions/model.Response'
+        "404":
+          description: Wallet not found
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: Get wallet balance
+      tags:
+      - Wallets
+schemes:
+- http
+swagger: "2.0"

@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:17
+    restart: always
+    env_file:
+      - ./config.env
+    environment:
+      # POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./databases:/var/lib/postgresql/data
+    ports:
+    - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d walletsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  # walletapi:
+
