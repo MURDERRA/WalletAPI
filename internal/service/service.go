@@ -11,11 +11,13 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// Структура для API
 type WalletAPI struct {
 	WalletRepo *repository.WalletRepo
 	logger     *log.Logger
 }
 
+// Конструктор WalletAPI
 func NewWalletAPI(walletRepo *repository.WalletRepo, logger *log.Logger) *WalletAPI {
 	return &WalletAPI{
 		WalletRepo: walletRepo,
@@ -46,7 +48,7 @@ func (api *WalletAPI) CreateWallet(c *gin.Context) {
 	api.logger.Printf("INFO: Created wallet %s", walletUUID)
 	c.JSON(http.StatusOK, model.Response{
 		Success: true,
-		Data:    map[string]string{"walletId": walletUUID},
+		Data:    map[string]string{"walletId": walletUUID}, // возвращаем UUID кошелька
 	})
 }
 
@@ -102,7 +104,7 @@ func (api *WalletAPI) UpdateBalance(c *gin.Context) {
 // @Failure 404 {object} model.Response "Wallet not found"
 // @Router /wallets/{WALLET_UUID} [get]
 func (api *WalletAPI) GetBalance(c *gin.Context) {
-	walletUUID := c.Param("WALLET_UUID")
+	walletUUID := c.Param("WALLET_UUID") // param берёт значение WALLET_UUID из url запроса
 	if walletUUID == "" {
 		api.logger.Printf("ERROR: Wallet UUID not provided")
 		c.JSON(http.StatusBadRequest, model.Response{
@@ -124,13 +126,15 @@ func (api *WalletAPI) GetBalance(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.Response{
 		Success: true,
-		Data:    map[string]interface{}{"balance": balance},
+		Data:    map[string]interface{}{"balance": balance}, // возврашаемый баланс, собственно
 	})
 }
 
+// Настройка ручек для API
 func SetupRoutes(router *gin.Engine, api *WalletAPI) {
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler)) // для swagger документации, в логах есть ссылка на неё
 
+	// базовая безопасность
 	router.Use(func(c *gin.Context) {
 		c.Header("X-Content-Type-Options", "nosniff")
 		c.Header("X-Frame-Options", "DENY")

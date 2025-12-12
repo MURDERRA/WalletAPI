@@ -6,6 +6,7 @@ import (
 	"WalletAPI/m/internal/repository"
 	"WalletAPI/m/internal/service"
 	"context"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -26,15 +27,29 @@ import (
 // @BasePath /v1/
 // @schemes http
 func main() {
-	cfg, err := config.InitConfig("WalletAPI")
+	// Инициализация конфига с указанием названия лог файла
+	cfg, err := config.InitConfig("WalletAPI ")
 	if err != nil {
-		println(err)
 		panic(err)
 	}
 
 	logger := cfg.Logger
 	ctx := context.Background()
-	pool, err := pgxpool.New(ctx, cfg.PostgresURL)
+
+	// Инициализация подключения к БД с настройками
+	poolConfig, err := pgxpool.ParseConfig(cfg.PostgresURL)
+	if err != nil {
+		logger.Fatalf("FATAL: failed to parse pool config: %v", err)
+	}
+
+	poolConfig.MaxConns = 100
+	poolConfig.MinConns = 10
+	poolConfig.MaxConnLifetime = time.Hour
+	poolConfig.MaxConnIdleTime = 30 * time.Minute
+	poolConfig.HealthCheckPeriod = time.Minute
+	poolConfig.ConnConfig.ConnectTimeout = 5 * time.Second
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		logger.Fatalf("FATAL: failed to connect to Postgres database: %v", err)
 	}
@@ -44,10 +59,13 @@ func main() {
 		logger.Fatalf("ping DB not pong: %v", err)
 	}
 
+	// Создание экземпляров WalletRepo и WalletAPI через конструкторы
 	walletRepo := repository.NewWalletRepo(pool, logger)
 	walletAPI := service.NewWalletAPI(walletRepo, logger)
 
 	router := gin.Default()
+	router.MaxMultipartMemory = 8 << 20 // 8 MB
+
 	service.SetupRoutes(router, walletAPI)
 
 	logger.Printf("INFO: API запущено на http://localhost:8080")
