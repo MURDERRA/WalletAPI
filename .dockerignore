@@ -15,3 +15,5 @@ databases/
 # Temporary files
 tmp/
 temp/
+
+tests/

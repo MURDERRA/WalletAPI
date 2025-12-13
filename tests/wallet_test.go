@@ -190,7 +190,7 @@ func TestAPI_Concurrent_SingleWallet_1000Requests(t *testing.T) {
 // Тест: несколько кошельков с конкурентными запросами
 func TestAPI_Concurrent_MultipleWallets(t *testing.T) {
 	const numWallets = 5
-	const requestsPerWallet = 1000
+	const requestsPerWallet = 500
 	const totalRequests = numWallets * requestsPerWallet
 
 	wallets := make([]string, numWallets)

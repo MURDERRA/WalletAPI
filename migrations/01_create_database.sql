@@ -1,1 +1,1 @@
-CREATE DATABASE wallets_db;
+CREATE DATABASE walletsdb;
